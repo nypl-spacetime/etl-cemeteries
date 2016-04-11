@@ -1,0 +1,19 @@
+{
+  "name": "spacetime-etl-cemeteries",
+  "version": "0.0.1",
+  "description": "Cemeteries!",
+  "main": "cemeteries.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "highland": "^2.7.4",
+    "spreadsheet-slurper": "github:nypl-spacetime/spreadsheet-slurper",
+    "wellknown": "^0.4.1"
+  },
+  "devDependencies": {
+    "standard": "^6.0.8"
+  }
+}
