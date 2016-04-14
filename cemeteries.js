@@ -23,19 +23,40 @@ function transform (config, dirs, tools, callback) {
     .map((row) => {
       var pit = {
         id: row.id,
-        name: row.name,
-        type: 'st:Cemetery',
-        geometry: row.geometry ? parse(row.geometry) : parse(`POINT (${row.longitude} ${row.latitude})`)
+        type: 'st:Cemetery'
+      }
+
+      if (row.name) {
+        pit.name = row.name
+      }
+
+      if (row.geometry || (row.longitude && row.latitude)) {
+        pit.geometry = row.geometry ? parse(row.geometry) : parse(`POINT (${row.longitude} ${row.latitude})`)
       }
 
       if (row.yearfrom) {
-        // TODO: try/catch
-        pit.validSince = parseInt(row.yearfrom)
+        try {
+          pit.validSince = parseInt(row.yearfrom)
+        } catch (err) {
+          // Do nothing, this row will be logged anyway
+        }
       }
 
       if (row.yearto) {
-        // TODO: try/catch
-        pit.validUntil = parseInt(row.yearto)
+        try {
+          pit.validUntil = parseInt(row.yearto)
+        } catch (err) {
+          // Do nothing, this row will be logged anyway
+        }
+      }
+
+      var log = {
+        id: row.id,
+        name: pit.name,
+        hasName: pit.name ? true : false,
+        hasGeometry: pit.geometry ? true : false,
+        hasValidSince: pit.validSince ? true : false,
+        hasValidUntil: pit.validUntil ? true : false
       }
 
       if (row.history || row.history || pit.records) {
@@ -54,17 +75,24 @@ function transform (config, dirs, tools, callback) {
         pit.data.records = row.records
       }
 
-      return pit
+      var result = [
+        {
+          type: 'pit',
+          obj: pit
+        }
+      ]
+
+      // Only log if there are missing columns
+      if (!log.hasName || !log.hasGeometry || (!log.hasValidSince && !log.validUntil)) {
+        result.push({
+          type: 'log',
+          obj: log
+        })
+      }
+
+      return result
     })
-    .map((pit) => ({
-      type: 'pit',
-      obj: pit
-    }))
-    // .compact()
-    // .map((s) => {
-    //   console.log(JSON.stringify(s, null, 2))
-    //   return null
-    // })
+    .flatten()
     .compact()
     .map(H.curry(tools.writer.writeObject))
     .nfcall([])
