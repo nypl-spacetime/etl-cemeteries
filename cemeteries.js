@@ -53,10 +53,25 @@ function transform (config, dirs, tools, callback) {
       var log = {
         id: row.id,
         name: pit.name,
-        hasName: pit.name ? true : false,
-        hasGeometry: pit.geometry ? true : false,
-        hasValidSince: pit.validSince ? true : false,
-        hasValidUntil: pit.validUntil ? true : false
+        logs: []
+      }
+
+      if (!pit.name) {
+        log.logs.push({
+          type: 'name_missing'
+        })
+      }
+
+      if (!pit.geometry) {
+        log.logs.push({
+          type: 'geometry_missing'
+        })
+      }
+
+      if (!pit.validSince && !pit.validUntil) {
+        log.logs.push({
+          type: 'dates_missing'
+        })
       }
 
       if (row.history || row.history || pit.records) {
@@ -82,8 +97,8 @@ function transform (config, dirs, tools, callback) {
         }
       ]
 
-      // Only log if there are missing columns
-      if (!log.hasName || !log.hasGeometry || (!log.hasValidSince && !log.validUntil)) {
+      // Only log if there are logs!
+      if (log.logs.length) {
         result.push({
           type: 'log',
           obj: log
